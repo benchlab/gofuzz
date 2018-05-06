@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package fuzz
+package greenrun
 
 import (
 	"reflect"
@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-func TestFuzz_basic(t *testing.T) {
+func TestGreenRun_basic(t *testing.T) {
 	obj := &struct {
 		I    int
 		I8   int8
@@ -42,7 +42,7 @@ func TestFuzz_basic(t *testing.T) {
 
 	failed := map[string]int{}
 	for i := 0; i < 10; i++ {
-		New().Fuzz(obj)
+		New().GreenRun(obj)
 
 		if n, v := "i", obj.I; v == 0 {
 			failed[n] = failed[n] + 1
@@ -98,7 +98,7 @@ func checkFailed(t *testing.T, failed map[string]int) {
 	}
 }
 
-func TestFuzz_structptr(t *testing.T) {
+func TestGreenRun_structptr(t *testing.T) {
 	obj := &struct {
 		A *struct {
 			S string
@@ -108,7 +108,7 @@ func TestFuzz_structptr(t *testing.T) {
 	f := New().NilChance(.5)
 	failed := map[string]int{}
 	for i := 0; i < 10; i++ {
-		f.Fuzz(obj)
+		f.GreenRun(obj)
 
 		if n, v := "a not nil", obj.A; v == nil {
 			failed[n] = failed[n] + 1
@@ -123,12 +123,12 @@ func TestFuzz_structptr(t *testing.T) {
 	checkFailed(t, failed)
 }
 
-// tryFuzz tries fuzzing up to 20 times. Fail if check() never passes, report the highest
+// tryGreenRun tries greenruning up to 20 times. Fail if check() never passes, report the highest
 // stage it ever got to.
-func tryFuzz(t *testing.T, f *Fuzzer, obj interface{}, check func() (stage int, passed bool)) {
+func tryGreenRun(t *testing.T, f *GreenRunner, obj interface{}, check func() (stage int, passed bool)) {
 	maxStage := 0
 	for i := 0; i < 20; i++ {
-		f.Fuzz(obj)
+		f.GreenRun(obj)
 		stage, passed := check()
 		if stage > maxStage {
 			maxStage = stage
@@ -140,7 +140,7 @@ func tryFuzz(t *testing.T, f *Fuzzer, obj interface{}, check func() (stage int, 
 	t.Errorf("Only ever got to stage %v", maxStage)
 }
 
-func TestFuzz_structmap(t *testing.T) {
+func TestGreenRun_structmap(t *testing.T) {
 	obj := &struct {
 		A map[struct {
 			S string
@@ -150,7 +150,7 @@ func TestFuzz_structmap(t *testing.T) {
 		B map[string]string
 	}{}
 
-	tryFuzz(t, New(), obj, func() (int, bool) {
+	tryGreenRun(t, New(), obj, func() (int, bool) {
 		if obj.A == nil {
 			return 1, false
 		}
@@ -184,7 +184,7 @@ func TestFuzz_structmap(t *testing.T) {
 	})
 }
 
-func TestFuzz_structslice(t *testing.T) {
+func TestGreenRun_structslice(t *testing.T) {
 	obj := &struct {
 		A []struct {
 			S string
@@ -192,7 +192,7 @@ func TestFuzz_structslice(t *testing.T) {
 		B []string
 	}{}
 
-	tryFuzz(t, New(), obj, func() (int, bool) {
+	tryGreenRun(t, New(), obj, func() (int, bool) {
 		if obj.A == nil {
 			return 1, false
 		}
@@ -220,7 +220,7 @@ func TestFuzz_structslice(t *testing.T) {
 	})
 }
 
-func TestFuzz_structarray(t *testing.T) {
+func TestGreenRun_structarray(t *testing.T) {
 	obj := &struct {
 		A [3]struct {
 			S string
@@ -228,7 +228,7 @@ func TestFuzz_structarray(t *testing.T) {
 		B [2]int
 	}{}
 
-	tryFuzz(t, New(), obj, func() (int, bool) {
+	tryGreenRun(t, New(), obj, func() (int, bool) {
 		for _, v := range obj.A {
 			if v.S == "" {
 				return 1, false
@@ -244,7 +244,7 @@ func TestFuzz_structarray(t *testing.T) {
 	})
 }
 
-func TestFuzz_custom(t *testing.T) {
+func TestGreenRun_custom(t *testing.T) {
 	obj := &struct {
 		A string
 		B *string
@@ -263,7 +263,7 @@ func TestFuzz_custom(t *testing.T) {
 		},
 	)
 
-	tryFuzz(t, f, obj, func() (int, bool) {
+	tryGreenRun(t, f, obj, func() (int, bool) {
 		if obj.A != testPhrase {
 			return 1, false
 		}
@@ -286,30 +286,30 @@ func TestFuzz_custom(t *testing.T) {
 	})
 }
 
-type SelfFuzzer string
+type SelfGreenRunner string
 
-// Implement fuzz.Interface.
-func (sf *SelfFuzzer) Fuzz(c Continue) {
-	*sf = selfFuzzerTestPhrase
+// Implement greenrun.Interface.
+func (sf *SelfGreenRunner) GreenRun(c Continue) {
+	*sf = selfGreenRunnerTestPhrase
 }
 
-const selfFuzzerTestPhrase = "was fuzzed"
+const selfGreenRunnerTestPhrase = "was greenruned"
 
-func TestFuzz_interface(t *testing.T) {
+func TestGreenRun_interface(t *testing.T) {
 	f := New()
 
-	var obj1 SelfFuzzer
-	tryFuzz(t, f, &obj1, func() (int, bool) {
-		if obj1 != selfFuzzerTestPhrase {
+	var obj1 SelfGreenRunner
+	tryGreenRun(t, f, &obj1, func() (int, bool) {
+		if obj1 != selfGreenRunnerTestPhrase {
 			return 1, false
 		}
 		return 1, true
 	})
 
-	var obj2 map[int]SelfFuzzer
-	tryFuzz(t, f, &obj2, func() (int, bool) {
+	var obj2 map[int]SelfGreenRunner
+	tryGreenRun(t, f, &obj2, func() (int, bool) {
 		for _, v := range obj2 {
-			if v != selfFuzzerTestPhrase {
+			if v != selfGreenRunnerTestPhrase {
 				return 1, false
 			}
 		}
@@ -317,25 +317,25 @@ func TestFuzz_interface(t *testing.T) {
 	})
 }
 
-func TestFuzz_interfaceAndFunc(t *testing.T) {
+func TestGreenRun_interfaceAndFunc(t *testing.T) {
 	const privateTestPhrase = "private phrase"
 	f := New().Funcs(
-		// This should take precedence over SelfFuzzer.Fuzz().
-		func(s *SelfFuzzer, c Continue) {
+		// This should take precedence over SelfGreenRunner.GreenRun().
+		func(s *SelfGreenRunner, c Continue) {
 			*s = privateTestPhrase
 		},
 	)
 
-	var obj1 SelfFuzzer
-	tryFuzz(t, f, &obj1, func() (int, bool) {
+	var obj1 SelfGreenRunner
+	tryGreenRun(t, f, &obj1, func() (int, bool) {
 		if obj1 != privateTestPhrase {
 			return 1, false
 		}
 		return 1, true
 	})
 
-	var obj2 map[int]SelfFuzzer
-	tryFuzz(t, f, &obj2, func() (int, bool) {
+	var obj2 map[int]SelfGreenRunner
+	tryGreenRun(t, f, &obj2, func() (int, bool) {
 		for _, v := range obj2 {
 			if v != privateTestPhrase {
 				return 1, false
@@ -345,7 +345,7 @@ func TestFuzz_interfaceAndFunc(t *testing.T) {
 	})
 }
 
-func TestFuzz_noCustom(t *testing.T) {
+func TestGreenRun_noCustom(t *testing.T) {
 	type Inner struct {
 		Str string
 	}
@@ -358,17 +358,17 @@ func TestFuzz_noCustom(t *testing.T) {
 	f := New().Funcs(
 		func(outer *Outer, c Continue) {
 			outer.Str = testPhrase
-			c.Fuzz(&outer.In)
+			c.GreenRun(&outer.In)
 		},
 		func(inner *Inner, c Continue) {
 			inner.Str = testPhrase
 		},
 	)
-	c := Continue{fc: &fuzzerContext{fuzzer: f}, Rand: f.r}
+	c := Continue{fc: &greenrunnerContext{greenrunner: f}, Rand: f.r}
 
-	// Fuzzer.Fuzz()
+	// GreenRunner.GreenRun()
 	obj1 := Outer{}
-	f.Fuzz(&obj1)
+	f.GreenRun(&obj1)
 	if obj1.Str != testPhrase {
 		t.Errorf("expected Outer custom function to have been called")
 	}
@@ -376,9 +376,9 @@ func TestFuzz_noCustom(t *testing.T) {
 		t.Errorf("expected Inner custom function to have been called")
 	}
 
-	// Continue.Fuzz()
+	// Continue.GreenRun()
 	obj2 := Outer{}
-	c.Fuzz(&obj2)
+	c.GreenRun(&obj2)
 	if obj2.Str != testPhrase {
 		t.Errorf("expected Outer custom function to have been called")
 	}
@@ -386,9 +386,9 @@ func TestFuzz_noCustom(t *testing.T) {
 		t.Errorf("expected Inner custom function to have been called")
 	}
 
-	// Fuzzer.FuzzNoCustom()
+	// GreenRunner.GreenRunNoCustom()
 	obj3 := Outer{}
-	f.FuzzNoCustom(&obj3)
+	f.GreenRunNoCustom(&obj3)
 	if obj3.Str == testPhrase {
 		t.Errorf("expected Outer custom function to not have been called")
 	}
@@ -396,9 +396,9 @@ func TestFuzz_noCustom(t *testing.T) {
 		t.Errorf("expected Inner custom function to have been called")
 	}
 
-	// Continue.FuzzNoCustom()
+	// Continue.GreenRunNoCustom()
 	obj4 := Outer{}
-	c.FuzzNoCustom(&obj4)
+	c.GreenRunNoCustom(&obj4)
 	if obj4.Str == testPhrase {
 		t.Errorf("expected Outer custom function to not have been called")
 	}
@@ -407,19 +407,19 @@ func TestFuzz_noCustom(t *testing.T) {
 	}
 }
 
-func TestFuzz_NumElements(t *testing.T) {
+func TestGreenRun_NumElements(t *testing.T) {
 	f := New().NilChance(0).NumElements(0, 1)
 	obj := &struct {
 		A []int
 	}{}
 
-	tryFuzz(t, f, obj, func() (int, bool) {
+	tryGreenRun(t, f, obj, func() (int, bool) {
 		if obj.A == nil {
 			return 1, false
 		}
 		return 2, len(obj.A) == 0
 	})
-	tryFuzz(t, f, obj, func() (int, bool) {
+	tryGreenRun(t, f, obj, func() (int, bool) {
 		if obj.A == nil {
 			return 3, false
 		}
@@ -427,7 +427,7 @@ func TestFuzz_NumElements(t *testing.T) {
 	})
 }
 
-func TestFuzz_Maxdepth(t *testing.T) {
+func TestGreenRun_Maxdepth(t *testing.T) {
 	type S struct {
 		S *S
 	}
@@ -437,7 +437,7 @@ func TestFuzz_Maxdepth(t *testing.T) {
 	f.MaxDepth(1)
 	for i := 0; i < 100; i++ {
 		obj := S{}
-		f.Fuzz(&obj)
+		f.GreenRun(&obj)
 
 		if obj.S != nil {
 			t.Errorf("Expected nil")
@@ -447,7 +447,7 @@ func TestFuzz_Maxdepth(t *testing.T) {
 	f.MaxDepth(3) // field, ptr
 	for i := 0; i < 100; i++ {
 		obj := S{}
-		f.Fuzz(&obj)
+		f.GreenRun(&obj)
 
 		if obj.S == nil {
 			t.Errorf("Expected obj.S not nil")
@@ -459,7 +459,7 @@ func TestFuzz_Maxdepth(t *testing.T) {
 	f.MaxDepth(5) // field, ptr, field, ptr
 	for i := 0; i < 100; i++ {
 		obj := S{}
-		f.Fuzz(&obj)
+		f.GreenRun(&obj)
 
 		if obj.S == nil {
 			t.Errorf("Expected obj.S not nil")

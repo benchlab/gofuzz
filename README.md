@@ -1,39 +1,39 @@
-gofuzz
+gogreenrun
 ======
 
-gofuzz is a library for populating go objects with random values.
+GoGreenRun is a library for populating go objects with random values.
 
-[![GoDoc](https://godoc.org/github.com/google/gofuzz?status.png)](https://godoc.org/github.com/google/gofuzz)
-[![Travis](https://travis-ci.org/google/gofuzz.svg?branch=master)](https://travis-ci.org/google/gofuzz)
+[![GoDoc](https://godoc.org/github.com/google/gogreenrun?status.png)](https://godoc.org/github.com/google/gogreenrun)
+[![Travis](https://travis-ci.org/google/gogreenrun.svg?branch=master)](https://travis-ci.org/google/gogreenrun)
 
 This is useful for testing:
 
 * Do your project's objects really serialize/unserialize correctly in all cases?
 * Is there an incorrectly formatted object that will cause your project to panic?
 
-Import with ```import "github.com/google/gofuzz"```
+Import with ```import "github.com/benchlab/gogreenrun"```
 
 You can use it on single variables:
 ```go
-f := fuzz.New()
+f := greenrun.New()
 var myInt int
-f.Fuzz(&myInt) // myInt gets a random value.
+f.GreenRun(&myInt)
 ```
 
 You can use it on maps:
 ```go
-f := fuzz.New().NilChance(0).NumElements(1, 1)
+f := greenrun.New().NilChance(0).NumElements(1, 1)
 var myMap map[ComplexKeyType]string
-f.Fuzz(&myMap) // myMap will have exactly one element.
+f.GreenRun(&myMap)
 ```
 
 Customize the chance of getting a nil pointer:
 ```go
-f := fuzz.New().NilChance(.5)
+f := greenrun.New().NilChance(.5)
 var fancyStruct struct {
   A, B, C, D *string
 }
-f.Fuzz(&fancyStruct) // About half the pointers should be set.
+f.GreenRun(&fancyStruct) 
 ```
 
 You can even customize the randomization completely if needed:
@@ -49,21 +49,21 @@ type MyInfo struct {
         BInfo *string
 }
 
-f := fuzz.New().NilChance(0).Funcs(
-        func(e *MyInfo, c fuzz.Continue) {
+f := greenrun.New().NilChance(0).Funcs(
+        func(e *MyInfo, c greenrun.Continue) {
                 switch c.Intn(2) {
                 case 0:
                         e.Type = A
-                        c.Fuzz(&e.AInfo)
+                        c.GreenRun(&e.AInfo)
                 case 1:
                         e.Type = B
-                        c.Fuzz(&e.BInfo)
+                        c.GreenRun(&e.BInfo)
                 }
         },
 )
 
 var myObject MyInfo
-f.Fuzz(&myObject) // Type will correspond to whether A or B info is set.
+f.GreenRun(&myObject)
 ```
 
 See more examples in ```example_test.go```.

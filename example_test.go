@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package fuzz_test
+package greenrun_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
 
-	"github.com/google/gofuzz"
+	"github.com/google/gogreenrun"
 )
 
 func ExampleSimple() {
@@ -34,13 +34,13 @@ func ExampleSimple() {
 		}
 	}
 
-	f := fuzz.New()
+	f := greenrun.New()
 	object := MyType{}
 
 	uniqueObjects := map[MyType]int{}
 
 	for i := 0; i < 1000; i++ {
-		f.Fuzz(&object)
+		f.GreenRun(&object)
 		uniqueObjects[object]++
 	}
 	fmt.Printf("Got %v unique objects.\n", len(uniqueObjects))
@@ -55,8 +55,8 @@ func ExampleCustom() {
 	}
 
 	counter := 0
-	f := fuzz.New().Funcs(
-		func(i *int, c fuzz.Continue) {
+	f := greenrun.New().Funcs(
+		func(i *int, c greenrun.Continue) {
 			*i = counter
 			counter++
 		},
@@ -66,7 +66,7 @@ func ExampleCustom() {
 	uniqueObjects := map[MyType]int{}
 
 	for i := 0; i < 100; i++ {
-		f.Fuzz(&object)
+		f.GreenRun(&object)
 		if object.A != i {
 			fmt.Printf("Unexpected value: %#v\n", object)
 		}
@@ -91,23 +91,23 @@ func ExampleComplex() {
 		PointerSlicePointer *[]*OtherType
 	}
 
-	f := fuzz.New().RandSource(rand.NewSource(0)).NilChance(0).NumElements(1, 1).Funcs(
-		func(o *OtherType, c fuzz.Continue) {
+	f := greenrun.New().RandSource(rand.NewSource(0)).NilChance(0).NumElements(1, 1).Funcs(
+		func(o *OtherType, c greenrun.Continue) {
 			o.A = "Foo"
 			o.B = "Bar"
 		},
-		func(op **OtherType, c fuzz.Continue) {
+		func(op **OtherType, c greenrun.Continue) {
 			*op = &OtherType{"A", "B"}
 		},
-		func(m map[string]OtherType, c fuzz.Continue) {
+		func(m map[string]OtherType, c greenrun.Continue) {
 			m["Works Because"] = OtherType{
-				"Fuzzer",
+				"GreenRunner",
 				"Preallocated",
 			}
 		},
 	)
 	object := MyType{}
-	f.Fuzz(&object)
+	f.GreenRun(&object)
 	bytes, err := json.MarshalIndent(&object, "", "    ")
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
@@ -121,13 +121,13 @@ func ExampleComplex() {
 	//     },
 	//     "Map": {
 	//         "Works Because": {
-	//             "A": "Fuzzer",
+	//             "A": "GreenRunner",
 	//             "B": "Preallocated"
 	//         }
 	//     },
 	//     "PointerMap": {
 	//         "Works Because": {
-	//             "A": "Fuzzer",
+	//             "A": "GreenRunner",
 	//             "B": "Preallocated"
 	//         }
 	//     },
@@ -153,18 +153,18 @@ func ExampleComplex() {
 }
 
 func ExampleMap() {
-	f := fuzz.New().NilChance(0).NumElements(1, 1)
+	f := greenrun.New().NilChance(0).NumElements(1, 1)
 	var myMap map[struct{ A, B, C int }]string
-	f.Fuzz(&myMap)
+	f.GreenRun(&myMap)
 	fmt.Printf("myMap has %v element(s).\n", len(myMap))
 	// Output:
 	// myMap has 1 element(s).
 }
 
 func ExampleSingle() {
-	f := fuzz.New()
+	f := greenrun.New()
 	var i int
-	f.Fuzz(&i)
+	f.GreenRun(&i)
 
 	// Technically, we'd expect this to fail one out of 2 billion attempts...
 	fmt.Printf("(i == 0) == %v", i == 0)
@@ -184,24 +184,24 @@ func ExampleEnum() {
 		BInfo *string
 	}
 
-	f := fuzz.New().NilChance(0).Funcs(
-		func(e *MyInfo, c fuzz.Continue) {
+	f := greenrun.New().NilChance(0).Funcs(
+		func(e *MyInfo, c greenrun.Continue) {
 			// Note c's embedded Rand allows for direct use.
 			// We could also use c.RandBool() here.
 			switch c.Intn(2) {
 			case 0:
 				e.Type = A
-				c.Fuzz(&e.AInfo)
+				c.GreenRun(&e.AInfo)
 			case 1:
 				e.Type = B
-				c.Fuzz(&e.BInfo)
+				c.GreenRun(&e.BInfo)
 			}
 		},
 	)
 
 	for i := 0; i < 100; i++ {
 		var myObject MyInfo
-		f.Fuzz(&myObject)
+		f.GreenRun(&myObject)
 		switch myObject.Type {
 		case A:
 			if myObject.AInfo == nil {
