@@ -15,4 +15,4 @@ limitations under the License.
 */
 
 // Package fuzz is a library for populating go objects with random values.
-package fuzz
+package greenrun

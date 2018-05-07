@@ -3,8 +3,8 @@ gogreenrun
 
 GoGreenRun is a library for populating go objects with random values.
 
-[![GoDoc](https://godoc.org/github.com/google/gogreenrun?status.png)](https://godoc.org/github.com/google/gogreenrun)
-[![Travis](https://travis-ci.org/google/gogreenrun.svg?branch=master)](https://travis-ci.org/google/gogreenrun)
+[![GoDoc](https://godoc.org/github.com/benchlab/gogreenrun?status.png)](https://godoc.org/github.com/benchlab/gogreenrun)
+[![Travis](https://travis-ci.org/benchlab/gogreenrun.svg?branch=master)](https://travis-ci.org/benchlab/gogreenrun)
 
 This is useful for testing:
 

@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/google/gogreenrun"
+	"github.com/benchlab/gogreenrun"
 )
 
 func ExampleSimple() {
