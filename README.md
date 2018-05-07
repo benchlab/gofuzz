@@ -3,9 +3,12 @@ gogreenrun
 
 GoGreenRun is a library for populating go objects with random values.
 
+<<<<<<< HEAD
 [![GoDoc](https://godoc.org/github.com/benchlab/gogreenrun?status.png)](https://godoc.org/github.com/benchlab/gogreenrun)
 [![Travis](https://travis-ci.org/benchlab/gogreenrun.svg?branch=master)](https://travis-ci.org/benchlab/gogreenrun)
 
+=======
+>>>>>>> 9aa5c6257e94c42563588536734f491aee9f2003
 This is useful for testing:
 
 * Do your project's objects really serialize/unserialize correctly in all cases?
